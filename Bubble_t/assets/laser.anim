@@ -1,0 +1,56 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "laser",
+  "_objFlags": 0,
+  "_native": "",
+  "_duration": 1.44,
+  "sample": 25,
+  "speed": 1,
+  "wrapMode": 1,
+  "curveData": {
+    "props": {
+      "height": [
+        {
+          "frame": 0,
+          "value": 127
+        },
+        {
+          "frame": 0.36,
+          "value": 1500
+        }
+      ],
+      "scaleX": [
+        {
+          "frame": 0,
+          "value": 0.3
+        },
+        {
+          "frame": 0.2,
+          "value": 0.2,
+          "curve": "circOut"
+        },
+        {
+          "frame": 0.8,
+          "value": 2.2
+        }
+      ],
+      "opacity": [
+        {
+          "frame": 0.36,
+          "value": 255
+        },
+        {
+          "frame": 1.4,
+          "value": 0
+        }
+      ]
+    }
+  },
+  "events": [
+    {
+      "frame": 1.44,
+      "func": "init",
+      "params": []
+    }
+  ]
+}

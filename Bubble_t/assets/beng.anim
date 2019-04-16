@@ -1,0 +1,61 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "beng",
+  "_objFlags": 0,
+  "_native": "",
+  "_duration": 0.1,
+  "sample": 60,
+  "speed": 0.3,
+  "wrapMode": 1,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "73c2669d-11b3-4f46-8480-d1cc0f78416d"
+            }
+          },
+          {
+            "frame": 0.016666666666666666,
+            "value": {
+              "__uuid__": "33ae5472-3f39-4d57-8ae1-8297ca47e266"
+            }
+          },
+          {
+            "frame": 0.03333333333333333,
+            "value": {
+              "__uuid__": "4703f688-d499-43d0-aa88-dd4b3a7a6c4c"
+            }
+          },
+          {
+            "frame": 0.05,
+            "value": {
+              "__uuid__": "f40f51bf-ebcf-45c1-b781-52d37c702234"
+            }
+          },
+          {
+            "frame": 0.06666666666666667,
+            "value": {
+              "__uuid__": "894fae01-63cc-410c-a8a4-34826187c24d"
+            }
+          },
+          {
+            "frame": 0.08333333333333333,
+            "value": {
+              "__uuid__": "51848a3f-c444-486c-9015-deb4d545b75d"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": [
+    {
+      "frame": 0.1,
+      "func": "init",
+      "params": []
+    }
+  ]
+}
