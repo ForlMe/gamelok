@@ -10,6 +10,7 @@ cc.Class({
         lineLength_count: 0,
         origin: null,
         increment: null,
+        raysCount: 0,
     }),
     onLoad() {
         if (!cc.yy) {
@@ -66,10 +67,25 @@ cc.Class({
      * @param {} event 
      */
     integrated_emission(event) {
+
+
+
+        // var delta = event.touch.getDelta();
+
+        // if(Math.abs(delta.x) > 0.6 || Math.abs(delta.y) > 0.6){
+        //     console.log(Math.abs(delta.x),Math.abs(delta.y))
+        // }else{
+        //     console.log(Math.abs(delta.x),Math.abs(delta.y))
+        //     return;
+        // }
+
+        
+        this.raysCount = 0;
+        cc.yy.raysDataNode = [];
+        cc.yy.ballReuseNub = 0;
         this.moveNub++;
         this.probeStatus = false;
         this.node.convertToNodeSpaceAR(cc.v2(cc.find('Canvas/bottom/arraw').x, cc.find('Canvas/bottom/arraw').y));
-
         let length = cc.yy.Line_spacing;
         let touchPos = this.node.convertToNodeSpaceAR(event.touch.getLocation());
         let line = touchPos.sub(this.origin);
@@ -83,9 +99,7 @@ cc.Class({
         for (let i = 0; i < this.lineLength_count; i++) {
             pos.addSelf(this.increment);
         }
-
         this.rayCast_a(this.origin, pos);
-
         var dis = this.origin.sub(touchPos);
         var angle = Math.atan2(dis.y, dis.x) / Math.PI * 180;
         this.arraw.rotation = -angle;
@@ -100,9 +114,6 @@ cc.Class({
      * @param {*} event 
      */
     rayCast_a: function (p1, p2) {
-
-
-
         let pos_a = p1.clone();
         var manager = cc.director.getPhysicsManager();
         var result_vz = cc.v2(0, 0);
@@ -111,56 +122,60 @@ cc.Class({
         } else {
             var result = manager.rayCast(this.node.convertToWorldSpaceAR(p1), this.node.convertToWorldSpaceAR(p2));
         }
-
+        //检测到碰撞体时进行折射
         result.forEach(results => {
-            result_vz = this.node.convertToNodeSpaceAR(results.point);
-            if (cc.yy.Trace_point_mode_type != 3) {
-                if (this.insda != undefined) {
-                    this.Cross_line(result_vz.x, result_vz.y, this.insda);
+                result_vz = this.node.convertToNodeSpaceAR(results.point);
+                if (cc.yy.Trace_point_mode_type != 3) {
+                    if (result[0].collider.node.name == "side_r" || result[0].collider.node.name == "side_l") {
+                        let insdaNew = cc.v2(-this.increment.x, this.increment.y);
+                        // cc.yy.raysDataNode.push([result_vz,insdaNew]);
+                        this.Cross_line(result_vz.x, result_vz.y, insdaNew);
+                    }
                 }
-            }
-
         });
-
         //画出描线
         for (let i = 0; i < this.lineLength_count; i++) {
             pos_a.addSelf(this.increment);
+
             if (result[0]) {
-                if (result_vz.y < pos_a.y) {
-                    //0，普通模式
-                    //1，超级瞄准线模式
-                    if (cc.yy.Trace_point_mode_type != 3) {
-                        if (result[0].collider.node.name == "side_r" || result[0].collider.node.name == "side_l") {
-                            let p5 = cc.v2(-result_vz.x, result_vz.y);
-                            let p3 = result_vz;
-                            p2 = p5.sub(p1).add(p3);
-                            this.rayCast_Vice(result_vz, p2);
-                        }
-                        //这里通过全局变量定位当前需要什么样的射线预览
-                        if (cc.yy.Trace_point_mode_type != 0 && cc.yy.Trace_point_mode_type != 1) {
-                            this.probeTypeFun(result[0], cc.yy.Trace_point_mode_type);
-                        }
-                    }
-                    //3，单线探测物体穿透模式
-                    if (cc.yy.Trace_point_mode_type == 3) {
-                        let conData = [];
-                        for (const iterator of result) {
-                            if (iterator.collider.node._parent.name != 'side_t' && iterator.collider.node._parent.name != 'side') {
-                                conData.push([iterator.collider.node._parent.io_y, iterator.collider.node._parent.io_x]);
+             
+                    if (result_vz.y < pos_a.y) {
+                        //0，普通模式
+                        //1，超级瞄准线模式
+                        if (cc.yy.Trace_point_mode_type != 3) {
+                            if (result[0].collider.node.name == "side_r" || result[0].collider.node.name == "side_l") {
+                                let p5 = cc.v2(-result_vz.x, result_vz.y);
+                                let p3 = result_vz;
+                                p2 = p5.sub(p1).add(p3);
+                                this.rayCast_Vice(result_vz, p2);
+                            }
+                            //这里通过全局变量定位当前需要什么样的射线预览
+                            if (cc.yy.Trace_point_mode_type != 0 && cc.yy.Trace_point_mode_type != 1) {
+                                this.probeTypeFun(result[0], cc.yy.Trace_point_mode_type);
                             }
                         }
-                        cc.yy.preview.init(conData);
-                        cc.yy.Trace_point_mode_Data = conData;
+                        //3，单线探测物体穿透模式
+                        if (cc.yy.Trace_point_mode_type == 3) {
+                            let conData = [];
+                            for (const iterator of result) {
+                                if (iterator.collider.node._parent.name != 'side_t' && iterator.collider.node._parent.name != 'side') {
+                                    conData.push([iterator.collider.node._parent.io_y, iterator.collider.node._parent.io_x]);
+                                }
+                            }
+                            cc.yy.preview.init(conData);
+                            cc.yy.Trace_point_mode_Data = conData;
+                        }
+                        return;
                     }
-                    return;
-                }
             }
-           
-                console.log(this.lineLength_count,i);
             /**
              * 使用节点画虚线
              */
+            if (result_vz.y > pos_a.y + 8) {
+                // cc.yy.raysDataNode.push([pos_a,this.increment]);
                 this.Cross_line(pos_a.x, pos_a.y, this.increment);
+
+            }
         }
     },
     /**
@@ -175,6 +190,7 @@ cc.Class({
             let gy = p2.sub(p1);
             this.insda = gy.normalize().mul(cc.yy.Line_spacing);
         } else {
+            p1.y += 7;
             this.insda = this.increment;
         }
         for (let index = 0; index < 50; index++) {
@@ -182,13 +198,19 @@ cc.Class({
         }
         var manager = cc.director.getPhysicsManager();
         var result = manager.rayCast(this.node.convertToWorldSpaceAR(p1), this.node.convertToWorldSpaceAR(p2));
-
-
         var p1_vxy = cc.v2(0, 0);
         result.forEach(results => {
             p1_vxy = this.node.convertToNodeSpaceAR(results.point);
             //注释取消描线延长点
-            // this.Cross_line(p1_vxy.x, p1_vxy.y, this.insda);
+            if (!bot) {
+                if (result[0].collider.node.name == "side_r" || result[0].collider.node.name == "side_l") {
+                    if (cc.yy.Trace_point_mode_type != 0) {
+                        // cc.yy.raysDataNode.push([p1_vxy,this.increment]);
+                        this.Cross_line(p1_vxy.x, p1_vxy.y, this.increment);
+
+                    }
+                }
+            }
         });
         //画出描线
         let traceLeng = 3;
@@ -214,7 +236,11 @@ cc.Class({
                     break;
                 }
             }
-            this.Cross_line(p1.x, p1.y, this.insda);
+            if (p1_vxy.y > p1.y + 8) {
+                // cc.yy.raysDataNode.push([p1,this.insda]);
+                this.Cross_line(p1.x, p1.y, this.insda);
+
+            }
         }
     },
     /**
@@ -240,28 +266,27 @@ cc.Class({
             /**
              * 子弹击打左下角
              */
-            if (result.normal.x < 0 && result.normal.y < 0) {
+            if (result.normal.x < 0 && result.normal.y < 0.5) {
                 var eventData = cc.yy.select.emissionFalling(3, node._parent);
             }
             /**
              * 子弹击打左上角
              */
-            if (result.normal.x < 0 && result.normal.y > 0) {
+            if (result.normal.x < 0 && result.normal.y > 0.5) {
                 var eventData = cc.yy.select.emissionFalling(1, node._parent);
             }
             /**
              *子弹击打右下角
              */
-            if (result.normal.x > 0 && result.normal.y < 0) {
+            if (result.normal.x > 0 && result.normal.y < 0.5) {
                 var eventData = cc.yy.select.emissionFalling(4, node._parent);
             }
             /**
              *子弹击打右上角
              */
-            if (result.normal.x > 0 && result.normal.y > 0) {
+            if (result.normal.x > 0 && result.normal.y > 0.5) {
                 var eventData = cc.yy.select.emissionFalling(2, node._parent);
             }
-
             cc.yy.preview.probe(eventData[0], eventData[1], cc.yy.Trace_point_mode_type);
             this.probeStatus = true;
         } else if (node.name != 'side_l' && node.name != 'side_r') {
@@ -280,7 +305,7 @@ cc.Class({
      * 关闭描线
      */
     destroyGraphics() {
-        // return;
+
         for (const iterator of this.node.children) {
             cc.yy.Ball.put(iterator);
             if (this.node.children.length != 0) {
@@ -289,22 +314,49 @@ cc.Class({
         }
     },
     /**
-     * 划线mode
+     * 描线创建
      * @param {*} vx 
      * @param {*} vy 
      * @param {*} colour 
      */
-    Cross_line(vx, vy, vector, colour) {
-        var item = cc.yy.Ball.get(vx, vy, vector);
-        item.tap = this.moveNub;
-        // item.vector = vector;
-        this.node.addChild(item);
+    Cross_line(vx, vy, vector) {
+        //描线颜色
         for (const iterator of this.node.children) {
             if (iterator.tap != this.moveNub) {
                 cc.yy.Ball.put(iterator);
             }
         }
+        if (cc.yy.Trace_point_mode_type < 2) {
+            var colourNode = cc.find('Canvas/bottom/show_a/emission');
+            if (!colourNode) {
+                return;
+            }
 
+            var colour = colourNode.tap;
+        } else {
+            switch (cc.yy.Trace_point_mode_type) {
+                case 2:
+                    var colour = 'd_2';
+                    break;
+                case 3:
+                    var colour = 'd_4';
+
+                    break;
+                case 4:
+                    var colour = 'd_3';
+                    break;
+                case 5:
+                    var colour = 'd_1';
+                    break;
+            }
+        }
+        if (vector == null) {
+            var vector = false;
+        }
+        var item = cc.yy.Ball.get(vx, vy, vector, colour);
+        item.tap = this.moveNub;
+        // item.vector = vector;
+        this.node.addChild(item);
     },
     /**
      * 已知角度求向量

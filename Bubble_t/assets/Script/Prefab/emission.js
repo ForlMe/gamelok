@@ -27,49 +27,48 @@ cc.Class({
     onBeginContact(contact, selfCollider, otherCollider) {
 
         this.pboot = false;
-        // if (otherCollider.node.name == "bottom_a") {
-        //     selfCollider.body.gravityScale = 5;
-        //     var bottom_a = cc.find("Canvas/bottom/bottom_a");
-        //     bottom_a.active = false;
-        //     this.scheduleOnce(function () {
-        //         this.node.destroy();
-        //     }, 2);
-        //     return;
-        // }
         if (otherCollider.node.name == 'side_r' || otherCollider.node.name == 'side_l') return;
         if (otherCollider.node.name == 'Static') {
             /**
-             * 子弹击打左下角
-             */
-            if (contact.getWorldManifold().normal.x > 0 && contact.getWorldManifold().normal.y > 0) {
-                var eventData = cc.yy.select.emissionFalling(3, otherCollider.node);
-            }
-            /**
              * 子弹击打左上角
              */
-            if (contact.getWorldManifold().normal.x > 0 && contact.getWorldManifold().normal.y < 0) {
+            if (contact.getWorldManifold().normal.x > 0 && contact.getWorldManifold().normal.y < 0.5) {
+                console.log('左上');
                 var eventData = cc.yy.select.emissionFalling(1, otherCollider.node);
-            }
-            /**
-             *子弹击打右下角
-             */
-            if (contact.getWorldManifold().normal.x < 0 && contact.getWorldManifold().normal.y > 0) {
-                var eventData = cc.yy.select.emissionFalling(4, otherCollider.node);
             }
             /**
              *子弹击打右上角
              */
-            if (contact.getWorldManifold().normal.x < 0 && contact.getWorldManifold().normal.y < 0) {
+            if (contact.getWorldManifold().normal.x < 0 && contact.getWorldManifold().normal.y < 0.5) {
+                console.log('右上');
                 var eventData = cc.yy.select.emissionFalling(2, otherCollider.node);
             }
-            if (eventData[0] != null && eventData[1] != null) {
-                var newData_io_x = eventData[0];
-                var newData_io_y = eventData[1];
-                this.pboot = true;
+            /**
+             * 子弹击打左下角
+             */
+            if (contact.getWorldManifold().normal.x > 0 && contact.getWorldManifold().normal.y > 0.5) {
+
+                console.log('左下');
+                var eventData = cc.yy.select.emissionFalling(3, otherCollider.node);
+            }
+            /**
+             *子弹击打右下角
+             */
+            if (contact.getWorldManifold().normal.x < 0 && contact.getWorldManifold().normal.y > 0.5) {
+                console.log('右下');
+                var eventData = cc.yy.select.emissionFalling(4, otherCollider.node);
+            }
+            if (cc.yy.TopNodeNoTow) {
+                if (eventData[0] != null && eventData[1] != null) {
+                    var newData_io_x = eventData[0];
+                    var newData_io_y = eventData[1];
+                    this.pboot = true;
+                    cc.yy.TopNodeNoTow = false;
+                }
             }
         } else {
             //这里需要写判断，不然可能会生成两个元素');
-            if(cc.yy.TopNodeNoTow){
+            if (cc.yy.TopNodeNoTow) {
                 let mapNodeXY = otherCollider.node.name.split('.');
                 var newData_io_x = mapNodeXY[1] * 1;
                 var newData_io_y = mapNodeXY[0] * 1;
@@ -92,26 +91,27 @@ cc.Class({
             cc.yy.Bgm.playSFX('collision.mp3');
             let NodeTap = selfCollider.node.tap;
             cc.yy.Emission.put(selfCollider.node);
+            
             if (cc.yy.MapNodePool.size() > 5) {
                 let tNode = cc.yy.MapNodePool.get(NodeTap);
                 tNode.io_x = newData_io_x;
                 tNode.io_y = newData_io_y;
-
-                tNode.runAction(
-                    cc.sequence(cc.moveBy(0.2, 0, 8),
-                        cc.moveBy(0.2, 0, -8),
-                        cc.moveBy(0.2, 0, 4),
-                        cc.moveBy(0.2, 0, -4),
-                        cc.moveBy(0.2, 0, 2),
-                        cc.moveBy(0.2, 0, -2),
-
-                        cc.callFunc(function () {
-                            tNode.x = 0;
-                            tNode.y = 0;
-                        })));
-                this.Shake(newData_io_y, newData_io_x);
-
+                //添加抖动节点
+                cc.yy.ShakeNode.push(tNode);
                 newMapNode.addChild(tNode);
+                    tNode.runAction(
+                        cc.sequence(cc.moveBy(0.2, 0, 8),
+                            cc.moveBy(0.2, 0, -8),
+                            cc.moveBy(0.2, 0, 4),
+                            cc.moveBy(0.2, 0, -4),
+                            cc.moveBy(0.2, 0, 2),
+                            cc.moveBy(0.2, 0, -2),
+                            cc.callFunc(function () {
+                                tNode.x = 0;
+                                tNode.y = 0;
+                            })));
+                    this.Shake(newData_io_y, newData_io_x);
+            
                 cc.yy.select.init(newMapNode);
             } else {
                 console.log('没有球啦');
@@ -126,7 +126,6 @@ cc.Class({
         let data = cc.yy.select.region(vy + '.' + vx, 1);
         for (const iterator of data) {
             cc.yy.shake.init(iterator);
-            // console.log(iterator[0], '------', iterator[1]);
         }
     },
     unuse() {

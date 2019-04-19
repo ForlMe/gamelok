@@ -11,5 +11,8 @@ cc.Class({
     },
     end(){
         this.node.active = false;
-    }
+    },
+    LoadGame(){
+        cc.director.loadScene("OnGame");
+    },
 });

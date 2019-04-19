@@ -13,11 +13,19 @@ module.exports = {
     destroyNode: require('DestroyNode'),
     //描线节点移动类
     raysmobile: require('raysMobile'),
+    //本地存储类
+    storage:require('Storage'),
+
+    
 
     //当前消除下降基数
     whereaboutsNub: 6,
-
-
+    //当前球的描线颜色
+    Line_color:0,
+    //彩虹球颜色
+    ballReuseNub:0,
+    //当前描线结构
+    raysDataNode :[],
     //头部发射泡泡时防止同是生成两个元素
     TopNodeNoTow: false,
     //GameCanvas
@@ -25,9 +33,10 @@ module.exports = {
     //存储池
     MapNodePool: null, //地图节点
     Emission: null, //射击节点
-    Ball: null, //
+    Ball: null, //画线点
 
-
+    //当前射击抖动节点
+    ShakeNode:[],
     //遮罩动画节点
     bgMask: null,
 
@@ -47,20 +56,20 @@ module.exports = {
     RaysType: false,
 
     //无尽模式布局行数
-    Endless: 1,
+    Endless: 5,
     //子弹发射角度(向量)
     Launch_angle: [],
     //子弹发射角度(角度)
     Launch_Degress: 0,
 
     //子弹发射速度(预制速度)
-    Launch_speed: 1300,
+    Launch_speed: 1800,
     //消除时间间隔
-    EliminateTimeIntervals: 0.15,
+    EliminateTimeIntervals: 0.1,
     //描线长度
     Line_length: 1500,
     //描线点间距
-    Line_spacing: 35,
+    Line_spacing: 25,
     //选择描线点模式
     Trace_point_mode: false,
     //是否开启超级描线模式
@@ -70,17 +79,18 @@ module.exports = {
     //3，单线探测物体穿透模式
     //4,单线探测同类元素模式
     //5,单线探测一整行模式
-    Trace_point_mode_type: 1,
+    Trace_point_mode_type: 0,
     //超级瞄准线扫描到的数据
     Trace_point_mode_Data: [],
     //临时存储上次描线状态
     Trace_point_mode_num: 0,
-
-
-
-
-
-
+    /**
+     * 道具数量
+     */
+    dj_1:1,
+    dj_2:1,
+    dj_3:1,
+    dj_4:1,
 
 
 

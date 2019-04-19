@@ -14,15 +14,29 @@ var DestroyNode = cc.Class({
         if (data.length > 2 || trye) {
             this.forList(data, 0);
         } else {
-            cc.yy.CanvasGameType = true;
-            
             if (cc.yy.whereaboutsNub > 1) {
                 cc.yy.whereaboutsNub--;
                 cc.yy.GameCanvas._components[1].test.string = cc.yy.whereaboutsNub;
+                
+                this.scheduleOnce(function () {
+                    cc.yy.storage.SetData('GameData_w');
+                    cc.yy.CanvasGameType = true;
+                }, 0.2);
             } else {
-                cc.yy.GameCanvas.getComponent('OnGame').onSliding();
-                cc.yy.whereaboutsNub = 6;
+                cc.yy.whereaboutsNub--;
                 cc.yy.GameCanvas._components[1].test.string = cc.yy.whereaboutsNub;
+                    this.scheduleOnce(function () {
+                        cc.yy.whereaboutsNub = 6;
+                        cc.yy.GameCanvas._components[1].test.string = cc.yy.whereaboutsNub;
+                        cc.yy.GameCanvas.getComponent('OnGame').onSliding();
+                    }, 0.5);
+            }
+            /**
+             * 检测游戏是否结束
+             */
+            if(this.GameOver(10)){
+                console.log('检测到了！！有病毒');
+                return;
             }
         }
         this.quantity = data.length;
@@ -40,7 +54,7 @@ var DestroyNode = cc.Class({
                 if (MapNode != undefined) {
                     // cc.yy.MapNodePool.put(MapNode);
                     cc.yy.Bgm.playSFX('delect.mp3');
-                    MapNode.destroy();//integ
+                    MapNode.destroy(); //integ
                     cc.yy.GameCanvas.getComponent('OnGame').integ(10);
                     self.forList(data, num + 1);
                     if (cc.yy.Trace_point_mode_type != 4) {
@@ -55,7 +69,6 @@ var DestroyNode = cc.Class({
                             cc.yy.select.suspension();
                             cc.yy.Trace_point_mode_type = 0;
                         }
-
                     }
                 }
             }, cc.yy.EliminateTimeIntervals);
@@ -69,39 +82,34 @@ var DestroyNode = cc.Class({
         let quannub = (data.length * 1) + (this.quantity * 1);
         if (quannub >= 5 && quannub < 7) {
             cc.yy.Bgm.playSFX('go.mp3');
-
             cc.yy.bgMask.getComponent('bgMask').init(1);
-
-
         } else if (quannub >= 7 && quannub < 9) {
             cc.yy.Bgm.playSFX('gr.mp3');
-
-
             cc.yy.bgMask.getComponent('bgMask').init(2);
-
         } else if (quannub >= 9) {
             cc.yy.Bgm.playSFX('ex.mp3');
-
             cc.yy.bgMask.getComponent('bgMask').init(3);
-
-
-
         }
         if (data.length > 0) {
             this.forSuspension(data, 0);
+        } else {
+            /**
+             * 这里用来写存储数据逻辑
+             */
+            this.scheduleOnce(function () {
+                cc.yy.storage.SetData('GameData_w');
+                cc.yy.CanvasGameType = true;
+            }, 0.2);
         }
-
-        cc.yy.CanvasGameType = true;
     },
     /**
      * 悬停递归消除
      */
     forSuspension(data, num) {
-        
-        if(data[num] == undefined){
+
+        if (data[num] == undefined) {
             return;
         }
-        console.log(data[num]);
         if (num < data.length) {
             let mapNodeXY = data[num].split('.');
             let vy = mapNodeXY[0] * 1;
@@ -110,34 +118,57 @@ var DestroyNode = cc.Class({
                 let MapNode = cc.yy.Map_Bg.getChildByName(data[num]).children[0];
                 if (MapNode != undefined) {
                     if (vy != 0) {
+                        MapNode.setParent(cc.yy.Bg.getChildByName(data[num]));
+                        MapNode.name = 'die';
                         let phy = MapNode.getComponent(cc.PhysicsCollider);
-                        let random_nub = Math.floor((Math.random() * 60) + 1);
+                        let random_nub = Math.floor((Math.random() * 40) + 1);
+                        let random_t = Math.floor((Math.random() * 2));
+                        console.log(random_t);
+                        if(random_t >0){
+                            random_nub = -random_nub;
+                        }
                         phy.node.runType = 0;
                         phy.node.runAction(cc.sequence(
-                            cc.moveBy(0.1, random_nub - 30, 40),
+                            cc.moveBy(0.1, random_nub, 40),
                             cc.callFunc(function () {
                                 phy.node.group = 'Group';
                                 phy.apply();
                                 phy.body.type = 2;
+                                /**
+                                 * 增加游戏活动的分数
+                                 */
                                 cc.yy.GameCanvas.getComponent('OnGame').integ(20);
                             })));
-                            this.scheduleOnce(function () {
+                        this.scheduleOnce(function () {
                             MapNode.destroy();
-                            console.log('删除');
-                        }, 1.5);
+                        }, 2);
                     }
                     self.forSuspension(data, num + 1);
                     if (num + 1 === data.length) {
-                        console.log('掉落结束');
+                        this.scheduleOnce(function () {
+                            cc.yy.storage.SetData('GameData_w');
+                            console.log('掉落结束');
+                            cc.yy.CanvasGameType = true;
+                        }, 0.2);
                     }
                 }
             });
         }
     },
+    GameOver(trye) {
 
-
-
-
+            for (const iterator of cc.yy.Map_Bg.children) {
+                if (iterator.io_y >= trye) {
+                    if (iterator.children.length > 0) {
+                        cc.yy.CanvasGameType = false;
+                        cc.find('Canvas/gameover').active = true;
+                        cc.yy.storage.SetData('GameData_w');
+                        return true;
+                    }
+                }
+            }
+            return false;
+    },
 });
 var DestroyNode = new DestroyNode();
 module.exports = DestroyNode;

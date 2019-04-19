@@ -23,14 +23,22 @@ var Select = cc.Class({
     emissionFalling(direction, node) {
         switch (direction) {
             case 1: //左上角
-                console.log('左上角');
-                var newData_io_x = node.io_x - 1;
-                var newData_io_y = node.io_y;
+                if (node.io_y % 2 === 0) {
+                    var newData_io_x = node.io_x - 1;
+                    var newData_io_y = node.io_y;
+                } else {
+                    var newData_io_x = node.io_x;
+                    var newData_io_y = node.io_y + 1;
+                }
                 break;
             case 2: //右上角
-                console.log('右上角');
-                var newData_io_x = node.io_x + 1;
-                var newData_io_y = node.io_y;
+                if (node.io_y % 2 === 0) {
+                    var newData_io_x = node.io_x + 1;
+                    var newData_io_y = node.io_y;
+                } else {
+                    var newData_io_x = node.io_x + 1;
+                    var newData_io_y = node.io_y + 1;
+                }
                 break;
             case 3: //左下角
                 if (node.io_y % 2 === 0) {
@@ -90,8 +98,7 @@ var Select = cc.Class({
             if (vx != 9)
                 vxy.push((vy) + '.' + (vx + 1));
             vxy.push((vy + 1) + '.' + (vx));
-            if (vx != 9)
-                vxy.push((vy + 1) + '.' + (vx + 1));
+            vxy.push((vy + 1) + '.' + (vx + 1));
         }
         let correct = [];
         for (const iterator of vxy) {
@@ -132,7 +139,7 @@ var Select = cc.Class({
         var popSuspension = [];
         //悬挂递归控制
         var popsum = 0;
-        
+
         if (this.test === 1 || boot) {
             //开始悬挂计算
             for (const iterator of cc.yy.Map_Bg.children) {
@@ -147,7 +154,7 @@ var Select = cc.Class({
             var interval = 0.01;
             // 重复次数
             var repeat = popSuspension.length - 1;
-            
+
 
             if (repeat == -1) {
                 cc.yy.destroyNode.InitSuspension(popNode);
@@ -160,7 +167,7 @@ var Select = cc.Class({
                     cc.yy.destroyNode.InitSuspension(popNode);
                 }
             }, interval, repeat);
-        }  
+        }
     },
     suspensionInquire(name, popNode) {
         if (name == null) {

@@ -51,10 +51,6 @@ cc.Class({
             displayName: '描线节点'
 
         },
-
-
-
-
         test: cc.Label,
         __current_emission: null,
 
@@ -75,10 +71,10 @@ cc.Class({
         cc.yy.Rays = this.rays;
         cc.yy.Map_Bg = cc.find('Canvas/main/boot/Endless_mode');
         cc.yy.bgMask = this.bgMask;
-
-
-
-
+        cc.yy.CanvasGameType = true;
+        //当前消除下降基数
+        cc.yy.whereaboutsNub = 6;
+        cc.yy.GameCanvas._components[1].test.string = cc.yy.whereaboutsNub;
         // 监听当手指在屏幕上目标节点区域内触摸开始时
         this.node.on(cc.Node.EventType.TOUCH_START, this.onItemStartCallBack, this);
         // 监听当手指在屏幕上目标节点区域内触摸移动时
@@ -100,21 +96,19 @@ cc.Class({
             let item = cc.instantiate(this.emission); // 创建节点
             cc.yy.Emission.put(item); // 通过 put 接口放入对象池
         }
+        
         for (let p = 0; p < 300; p++) {
             let item = cc.instantiate(this.ball); // 创建节点
             cc.yy.Ball.put(item); // 通过 put 接口放入对象池
         }
-
-
-        this.scheduleOnce(function () {
-
-            // cc.director.getPhysicsManager().debugDrawFlags = cc.PhysicsManager.DrawBits.e_aabbBit |
-            //     cc.PhysicsManager.DrawBits.e_pairBit |
-            //     cc.PhysicsManager.DrawBits.e_centerOfMassBit |
-            //     cc.PhysicsManager.DrawBits.e_jointBit |
-            //     cc.PhysicsManager.DrawBits.e_shapeBit;
-
-        });
+        // this.scheduleOnce(function () {
+        //     cc.director.getPhysicsManager().debugDrawFlags =
+        //         cc.PhysicsManager.DrawBits.e_aabbBit |
+        //         cc.PhysicsManager.DrawBits.e_pairBit |
+        //         cc.PhysicsManager.DrawBits.e_centerOfMassBit |
+        //         cc.PhysicsManager.DrawBits.e_jointBit |
+        //         cc.PhysicsManager.DrawBits.e_shapeBit;
+        // });   
     },
     /**
      * 监听手指点击时
@@ -135,18 +129,34 @@ cc.Class({
      * @param {} event 
      */
     onItemEndCallBack(event) {
+
+        
         //当前发射点
         if (!cc.yy.RaysType) {
             return;
         }
+        let show_a = cc.find('Canvas/bottom/show_a/emission');
+        if (show_a) {
+            show_a.children[0].active = true;
+        }
+        if(!show_a){
+            return;
+        }
+        for (const iterator of cc.yy.ShakeNode) {
+            if(iterator.getNumberOfRunningActions() > 0){
+                iterator.stopAllActions();
+                iterator.x = 0;
+                iterator.y = 0;
+            }
+        }
+        cc.yy.ShakeNode = [];
         cc.yy.TopNodeNoTow = true;
         cc.yy.CanvasGameType = false;
         if (cc.yy.Trace_point_mode_type < 2) {
             cc.yy.Bgm.playSFX('emission.mp3');
             cc.yy.RaysType = false;
             cc.yy.preview.preDie();
-            let show_a = cc.find('Canvas/bottom/show_a/emission');
-            show_a.children[0].active = true;
+
             var emission = show_a.getComponent(cc.RigidBody);
             var Launch_angle = cc.yy.Launch_angle;
             //发射点发射
@@ -177,14 +187,15 @@ cc.Class({
                 this.scheduleOnce(function () {
                     for (const iterator of cc.yy.Trace_point_mode_Data) {
                         let dataNode = cc.yy.Map_Bg.getChildByName(iterator[0] + '.' + iterator[1]);
-                        dataNode.children[0].destroy();
+                        if (dataNode.children[0]) {
+                            dataNode.children[0].destroy();
+                        }
                     }
                     // cc.yy.select.suspension(true);
                 }, 0.5);
             }
         }
         if (cc.yy.MapNodePool.size() < 30) {
-
             for (let i = 0; i < 136; i++) {
                 let item = cc.instantiate(this.Static); // 创建节点
                 cc.yy.MapNodePool.put(item); // 通过 put 接口放入对象池
@@ -196,7 +207,17 @@ cc.Class({
      * 下滑新增
      */
     onSliding() {
-        var selectDataNode = [];
+        /**
+         * 停滞晃动效果，并归位
+         */
+        for (const iterator of cc.yy.ShakeNode) {
+            if(iterator.getNumberOfRunningActions() > 0){
+                iterator.stopAllActions();
+                iterator.x = 0;
+                iterator.y = 0;
+            }
+        }
+        cc.yy.ShakeNode = [];
         let bgNode = cc.yy.Map_Bg.children;
         let endMapData = cc.find('Canvas/main/boot/preparation').children;
         bgNode.reverse();
@@ -207,34 +228,67 @@ cc.Class({
             i.io_x = mapNodeXY[1] * 1;
             i.io_y = mapNodeXY[0] * 1;
             let random = Math.floor(Math.random() * 5 + 1);
-            if (random != 0) {
+            if(cc.yy.MapNodePool.size() > 25){
+                if (random != 0) {
+                    let item = cc.yy.MapNodePool.get(random);
+                    item.io_x = i.io_x;
+                    item.io_y = i.io_y;
+                    i.addChild(item);
+                }
+            }else{
+
+                for (let i = 0; i < 136; i++) {
+                    let item = cc.instantiate(this.Static); // 创建节点
+                    cc.yy.MapNodePool.put(item); // 通过 put 接口放入对象池
+                }
+
                 let item = cc.yy.MapNodePool.get(random);
                 item.io_x = i.io_x;
                 item.io_y = i.io_y;
                 i.addChild(item);
+
             }
+
         }
         for (const iterator of bgNode) {
             onshow.push(iterator);
         }
         for (const iterator of endMapData) {
             onshow.push(iterator);
-        }
-        for (const iterator of onshow) {
-            if (iterator.children[0] != undefined) {
-                let chiNode = iterator.children[0];
-                chiNode.runAction(cc.sequence(cc.moveBy(0.5, 0, -110), cc.callFunc(function () {
-                    chiNode.io_y += 2;
-                    chiNode.setParent(cc.yy.Map_Bg.getChildByName(chiNode.io_y + '.' + chiNode.io_x));
-                    chiNode.x = 0;
-                    chiNode.y = 0;
-                    chiNode.getChildByName('Static').y = 0
-                    console.log('完成！');
-                })));
             }
+
+            var constCunt_a = 0;
+            var constCunt_b = 0;
+            for (const iterator of onshow) {
+                if (iterator.children[0] != undefined) {
+                    constCunt_a++;
+                    let chiNode = iterator.children[0];
+                    chiNode.runAction(cc.sequence(cc.moveBy(0.5, 0, -110), cc.callFunc(function () {
+                        chiNode.io_y += 2;
+                        chiNode.setParent(cc.yy.Map_Bg.getChildByName(chiNode.io_y + '.' + chiNode.io_x));
+                        chiNode.x = 0;
+                        chiNode.y = 0;
+                        chiNode.getChildByName('Static').y = 0;
+                        constCunt_b++;
+                        if(constCunt_b == constCunt_a){
+                            cc.yy.storage.SetData('GameData_w');
+                            console.log('------------------');
+                            for (const iterator of cc.yy.Bg.children) {
+                                if(iterator.children.length>1){
+                                    console.log(iterator);
+                                }
+                            }
+                            
+                        }
+                    })));
+                }
         }
         bgNode.reverse();
         endMapData.reverse();
+        this.scheduleOnce(function(){
+            cc.yy.CanvasGameType = true;
+            cc.yy.destroyNode.GameOver(10);
+        },0.7);
     },
     /**
      * 点击事件触发
@@ -299,6 +353,10 @@ cc.Class({
                     }
                 }
                 break;
+            case 'Tab':
+                //弹出选项卡
+
+                break;
         }
 
 
@@ -312,6 +370,4 @@ cc.Class({
     integ(int) {
         this.integral.string = (this.integral.string * 1) + int;
     },
-
-
 });
